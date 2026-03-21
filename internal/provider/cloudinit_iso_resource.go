@@ -156,9 +156,17 @@ func (r *CloudInitISOResource) Create(ctx context.Context, req resource.CreateRe
 
 	// Check if ISO already exists (for idempotency)
 	if _, err := os.Stat(isoPath); err == nil {
-		tflog.Info(ctx, "Cloud-init ISO already exists, reusing", map[string]any{
-			"path": isoPath,
-		})
+		if os.IsExist(err) {
+			tflog.Info(ctx, "Cloud-init ISO already exists, reusing", map[string]any{
+				"path": isoPath,
+			})
+		} else {
+			resp.Diagnostics.AddError(
+				"Failed to check if ISO exists",
+				fmt.Sprintf("Could not stat cloud-init ISO: %s", err),
+			)
+			return
+		}
 	} else {
 		// Create new ISO
 		tflog.Debug(ctx, "Generating cloud-init ISO", map[string]any{
