@@ -20,11 +20,11 @@ func TestAccCloudInitDiskResource_basic(t *testing.T) {
 			{
 				Config: testAccCloudInitDiskResourceConfigBasic("test-cloudinit"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("libvirt_cloudinit_disk.test", "name", "test-cloudinit"),
-					resource.TestCheckResourceAttrSet("libvirt_cloudinit_disk.test", "id"),
-					resource.TestCheckResourceAttrSet("libvirt_cloudinit_disk.test", "path"),
-					resource.TestCheckResourceAttrSet("libvirt_cloudinit_disk.test", "size"),
-					testAccCheckCloudInitDiskExists("libvirt_cloudinit_disk.test"),
+					resource.TestCheckResourceAttr("cloudinit_iso.test", "name", "test-cloudinit"),
+					resource.TestCheckResourceAttrSet("cloudinit_iso.test", "id"),
+					resource.TestCheckResourceAttrSet("cloudinit_iso.test", "path"),
+					resource.TestCheckResourceAttrSet("cloudinit_iso.test", "size"),
+					testAccCheckCloudInitDiskExists("cloudinit_iso.test"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
@@ -40,30 +40,10 @@ func TestAccCloudInitDiskResource_withNetworkConfig(t *testing.T) {
 			{
 				Config: testAccCloudInitDiskResourceConfigWithNetwork("test-cloudinit-net"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("libvirt_cloudinit_disk.test", "name", "test-cloudinit-net"),
-					resource.TestCheckResourceAttrSet("libvirt_cloudinit_disk.test", "network_config"),
-					resource.TestCheckResourceAttrSet("libvirt_cloudinit_disk.test", "path"),
-					testAccCheckCloudInitDiskExists("libvirt_cloudinit_disk.test"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccCloudInitDiskResource_withVolume(t *testing.T) {
-	poolPath := t.TempDir()
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccCloudInitDiskResourceConfigWithVolume("test-cloudinit-volume", poolPath),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("libvirt_cloudinit_disk.test", "name", "test-cloudinit-volume"),
-					resource.TestCheckResourceAttr("libvirt_volume.cloudinit", "name", "test-cloudinit-volume.iso"),
-					resource.TestCheckResourceAttrSet("libvirt_volume.cloudinit", "id"),
-					testAccCheckCloudInitDiskExists("libvirt_cloudinit_disk.test"),
+					resource.TestCheckResourceAttr("cloudinit_iso.test", "name", "test-cloudinit-net"),
+					resource.TestCheckResourceAttrSet("cloudinit_iso.test", "network_config"),
+					resource.TestCheckResourceAttrSet("cloudinit_iso.test", "path"),
+					testAccCheckCloudInitDiskExists("cloudinit_iso.test"),
 				),
 			},
 		},
@@ -93,7 +73,7 @@ func testAccCheckCloudInitDiskExists(resourceName string) resource.TestCheckFunc
 		}
 
 		// Verify it's in the expected temp directory
-		expectedDir := filepath.Join(os.TempDir(), "terraform-provider-libvirt-cloudinit")
+		expectedDir := filepath.Join(os.TempDir(), "terraform-provider-cloudinit")
 		if !strings.HasPrefix(path, expectedDir) {
 			return fmt.Errorf("ISO file is not in expected directory: got %s, expected prefix %s", path, expectedDir)
 		}
@@ -104,7 +84,7 @@ func testAccCheckCloudInitDiskExists(resourceName string) resource.TestCheckFunc
 
 func testAccCloudInitDiskResourceConfigBasic(name string) string {
 	return fmt.Sprintf(`
-resource "libvirt_cloudinit_disk" "test" {
+resource "cloudinit_iso" "test" {
   name      = %[1]q
   user_data = <<-EOF
     #cloud-config
@@ -124,7 +104,7 @@ resource "libvirt_cloudinit_disk" "test" {
 
 func testAccCloudInitDiskResourceConfigWithNetwork(name string) string {
 	return fmt.Sprintf(`
-resource "libvirt_cloudinit_disk" "test" {
+resource "cloudinit_iso" "test" {
   name      = %[1]q
   user_data = <<-EOF
     #cloud-config
@@ -147,44 +127,4 @@ resource "libvirt_cloudinit_disk" "test" {
   EOF
 }
 `, name)
-}
-
-func testAccCloudInitDiskResourceConfigWithVolume(name, poolPath string) string {
-	return fmt.Sprintf(`
-resource "libvirt_pool" "test" {
-  name = "test-pool-cloudinit"
-  type = "dir"
-  target = {
-    path = %[2]q
-  }
-}
-
-resource "libvirt_cloudinit_disk" "test" {
-  name      = %[1]q
-  user_data = <<-EOF
-    #cloud-config
-    password: password
-    chpasswd:
-      expire: false
-    ssh_pwauth: true
-  EOF
-
-  meta_data = <<-EOF
-    instance-id: %[1]s-001
-    local-hostname: %[1]s
-  EOF
-}
-
-resource "libvirt_volume" "cloudinit" {
-  name   = "%[1]s.iso"
-  pool   = libvirt_pool.test.name
-  # Let libvirt auto-detect format (it will detect as "iso")
-
-  create = {
-    content = {
-      url = libvirt_cloudinit_disk.test.path
-    }
-  }
-}
-`, name, poolPath)
 }
