@@ -38,13 +38,13 @@ resource "cloudinit_iso" "seed" {
 
 ### Required
 
-- `meta_data` (String) Cloud-init meta-data content (usually YAML).
+- `meta_data` (String, Sensitive) Cloud-init meta-data content (usually YAML).
 - `name` (String) Name for this cloud-init ISO resource.
-- `user_data` (String) Cloud-init user-data content (usually YAML).
+- `user_data` (String, Sensitive) Cloud-init user-data content (usually YAML).
 
 ### Optional
 
-- `network_config` (String) Cloud-init network configuration (optional, usually YAML).
+- `network_config` (String, Sensitive) Cloud-init network configuration (optional, usually YAML).
 
 ### Read-Only
 
