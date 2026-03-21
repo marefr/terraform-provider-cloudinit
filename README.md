@@ -62,3 +62,9 @@ _Note:_ Acceptance tests create real resources, and often cost money to run.
 ```shell
 make testacc
 ```
+
+# License
+
+This is released under the Apache 2.0 license. See the [LICENSE](LICENSE) file for details.
+
+This is based on work in https://github.com/dmacvicar/terraform-provider-libvirt by @dmacvicar, see [NOTICE.md](NOTICE.md) for details.
