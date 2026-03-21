@@ -1,5 +1,16 @@
 # Terraform Provider for generating cloud-init iso
 
+[![License](https://img.shields.io/github/license/marefr/terraform-provider-cloudinit)](LICENSE)
+[![Build and Test](https://github.com/marefr/terraform-provider-cloudinit/actions/workflows/test.yml/badge.svg)](https://github.com/marefr/terraform-provider-cloudinit/actions/workflows/test.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/marefr/terraform-provider-cloudinit)](https://goreportcard.com/report/github.com/marefr/terraform-provider-cloudinit)
+
+The provider allows generating cloud-init ISO images, suitable for use with the
+[NoCloud data source](https://docs.cloud-init.io/en/latest/reference/datasources/nocloud.html) and the
+[drive with labeled filesystem](https://docs.cloud-init.io/en/latest/reference/datasources/nocloud.html#source-2-drive-with-labeled-filesystem)
+configuration source.
+
+See the [cloud-init documentation](https://cloudinit.readthedocs.io/) for more details.
+
 ## Requirements
 
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0
@@ -46,7 +57,7 @@ To generate or update documentation, run `make generate`.
 
 In order to run the full suite of Acceptance tests, run `make testacc`.
 
-*Note:* Acceptance tests create real resources, and often cost money to run.
+_Note:_ Acceptance tests create real resources, and often cost money to run.
 
 ```shell
 make testacc
