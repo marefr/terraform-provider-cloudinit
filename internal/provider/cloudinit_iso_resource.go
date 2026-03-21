@@ -84,7 +84,6 @@ See the [cloud-init documentation](https://cloudinit.readthedocs.io/) for config
 			"meta_data": schema.StringAttribute{
 				Description: "Cloud-init meta-data content (usually YAML).",
 				Required:    true,
-				Sensitive:   true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -92,7 +91,6 @@ See the [cloud-init documentation](https://cloudinit.readthedocs.io/) for config
 			"network_config": schema.StringAttribute{
 				Description: "Cloud-init network configuration (optional, usually YAML).",
 				Optional:    true,
-				Sensitive:   true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
