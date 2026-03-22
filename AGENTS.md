@@ -45,18 +45,7 @@ This is a Terraform provider that generates cloud-init ISO images for use with t
 
 The only resource in this provider. Located in `internal/provider/cloudinit_iso_resource.go`.
 
-**Attributes:**
-
-| Attribute | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `name` | string | Yes | Resource name, included in ID hash |
-| `user_data` | string | Yes | Cloud-init user-data (sensitive) |
-| `meta_data` | string | Yes | Cloud-init meta-data |
-| `network_config` | string | No | Cloud-init network configuration |
-| `output_dir` | string | No | Custom output directory (defaults to temp) |
-| `id` | string | Computed | SHA256 hash (first 16 chars) of name + content |
-| `path` | string | Computed | Full path to generated ISO |
-| `size` | int64 | Computed | ISO file size in bytes |
+See [docs/resources/iso.md](docs/resources/iso.md) for full schema documentation and examples.
 
 **Behavior:**
 - All content attributes use `RequiresReplace()` - any change triggers resource recreation
@@ -64,32 +53,16 @@ The only resource in this provider. Located in `internal/provider/cloudinit_iso_
 - ISO files are named `cloudinit-{id}.iso` for uniqueness
 - The ID is derived from SHA256 of: name + user_data + meta_data + network_config (if set)
 
-### ISO Generation
-
-Uses the `github.com/kdomanski/iso9660` library to create ISO9660 images with:
-- Volume label: `cidata` (required for cloud-init NoCloud detection)
-- Files: `user-data`, `meta-data`, and optionally `network-config`
+Uses the `github.com/kdomanski/iso9660` library to create ISO9660 images with volume label `cidata`.
 
 ## Testing
 
-### Unit Tests
 ```bash
-make test
+make test      # Unit tests
+make testacc   # Acceptance tests (creates real ISO files)
 ```
 
-### Acceptance Tests
-```bash
-make testacc
-```
-
-Acceptance tests create real ISO files in a temporary directory. They verify:
-- ISO file creation
-- Correct file paths
-- Attribute values in state
-
-### Test Patterns
-
-Test files follow the pattern `*_test.go`. Key test helpers:
+Key test helpers in `*_test.go` files:
 - `testAccProtoV6ProviderFactories` - Provider factory for tests
 - `testAccPreCheck(t)` - Pre-test validation
 - `testAccCheckCloudInitDiskExists` - Verifies ISO file exists on disk
@@ -127,57 +100,6 @@ Provider logs use `tflog` package with structured logging.
 - Error messages should be user-friendly (shown in Terraform output)
 - Use `tflog` for debug/info logging, not `fmt.Print` or `log`
 - Schema descriptions are used for documentation generation
-
-## Example Usage
-
-### Basic Configuration
-
-```terraform
-resource "cloudinit_iso" "example" {
-  name      = "my-vm-init"
-  user_data = file("cloud-init/user-data.yaml")
-  meta_data = yamlencode({
-    instance-id    = "vm-001"
-    local-hostname = "webserver"
-  })
-}
-```
-
-### With Network Configuration
-
-```terraform
-resource "cloudinit_iso" "example" {
-  name      = "my-vm-init"
-  user_data = file("cloud-init/user-data.yaml")
-  meta_data = file("cloud-init/meta-data.yaml")
-  network_config = file("cloud-init/network-config.yaml")
-}
-```
-
-### With Custom Output Directory
-
-```terraform
-resource "cloudinit_iso" "example" {
-  name       = "my-vm-init"
-  output_dir = "/var/lib/libvirt/images"
-  user_data  = file("cloud-init/user-data.yaml")
-  meta_data  = file("cloud-init/meta-data.yaml")
-}
-```
-
-## Dependencies
-
-Key dependencies (see `go.mod`):
-- `github.com/hashicorp/terraform-plugin-framework` - Terraform provider SDK
-- `github.com/hashicorp/terraform-plugin-testing` - Testing utilities
-- `github.com/hashicorp/terraform-plugin-log` - Structured logging
-- `github.com/kdomanski/iso9660` - ISO9660 image generation
-
-## CI/CD
-
-GitHub Actions workflows in `.github/workflows/`:
-- `test.yml` - Runs on PRs and pushes to main; builds, lints, and runs acceptance tests
-- `release.yml` - Handles releases via GoReleaser
 
 ## Important Notes
 
