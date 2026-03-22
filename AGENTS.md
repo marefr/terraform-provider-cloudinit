@@ -12,32 +12,24 @@ This is a Terraform provider that generates cloud-init ISO images for use with t
 
 ```
 .
-├── internal/provider/           # Provider and resource implementations
-│   ├── provider.go              # Main provider definition
-│   ├── provider_test.go         # Provider test setup
-│   ├── cloudinit_iso_resource.go      # The cloudinit_iso resource
-│   └── cloudinit_iso_resource_test.go # Resource tests
-├── docs/                        # Auto-generated documentation (do not edit manually)
-├── examples/                    # Example Terraform configurations
-│   ├── provider/                # Provider configuration example
-│   └── resources/               # Resource examples
-├── tools/                       # Code generation tools
-├── main.go                      # Provider entry point
-├── Makefile                     # Build commands
-└── go.mod                       # Go module definition
+├── internal/provider/    # Provider and resource implementations
+├── docs/                 # Auto-generated documentation (do not edit manually)
+├── examples/             # Example Terraform configurations which will be included in the auto-generated docs
+├── tools/                # Code generation tools
+├── main.go               # Provider entry point
+├── Makefile              # Build commands
+└── go.mod                # Go module definition
 ```
 
 ## Development Commands
 
-| Command | Description |
-|---------|-------------|
-| `make build` | Build the provider binary |
-| `make test` | Run unit tests |
-| `make testacc` | Run acceptance tests (creates real ISO files) |
-| `make lint` | Run golangci-lint |
-| `make fmt` | Format Go code |
-| `make generate` | Generate documentation from schema |
-| `make` | Run fmt, lint, install, and generate |
+- `make build` - Build the provider binary
+- `make test` - Run unit tests
+- `make testacc` - Run acceptance tests (creates real ISO files)
+- `make lint` - Run golangci-lint
+- `make fmt` - Format Go code
+- `make generate` - Generate documentation from schema
+- `make` - Run fmt, lint, install, and generate
 
 ## Key Implementation Details
 
