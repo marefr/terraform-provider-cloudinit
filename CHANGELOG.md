@@ -1,3 +1,4 @@
-## 0.1.0 (Unreleased)
+## 0.1.0
 
-FEATURES:
+### Features
+- cloudinit_iso provider resource
