@@ -31,6 +31,7 @@ type CloudInitISOResourceModel struct {
 	UserData      types.String `tfsdk:"user_data"`
 	MetaData      types.String `tfsdk:"meta_data"`
 	NetworkConfig types.String `tfsdk:"network_config"`
+	OutputDir     types.String `tfsdk:"output_dir"`
 	Path          types.String `tfsdk:"path"`
 	Size          types.Int64  `tfsdk:"size"`
 }
@@ -95,9 +96,19 @@ See the [cloud-init documentation](https://cloudinit.readthedocs.io/) for config
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			"output_dir": schema.StringAttribute{
+				Description: "Directory where the ISO file will be created. Defaults to a temporary directory if not specified.",
+				Optional:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
 			"path": schema.StringAttribute{
 				Computed:    true,
 				Description: "Full path to the generated ISO file.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"size": schema.Int64Attribute{
 				Description: "Size of the ISO file in bytes.",
@@ -133,6 +144,7 @@ func (r *CloudInitISOResource) Create(ctx context.Context, req resource.CreateRe
 
 	// Create checksum for ID
 	h := sha256.New()
+	h.Write([]byte(name))
 	h.Write([]byte(userData))
 	h.Write([]byte(metaData))
 	if !model.NetworkConfig.IsNull() {
@@ -141,34 +153,34 @@ func (r *CloudInitISOResource) Create(ctx context.Context, req resource.CreateRe
 	checksum := fmt.Sprintf("%x", h.Sum(nil))
 	model.ID = types.StringValue(checksum[:16]) // Use first 16 chars of checksum
 
-	// Create temp directory for cloud-init ISOs if it doesn't exist
-	tmpDir := filepath.Join(os.TempDir(), "terraform-provider-cloudinit")
-	if err := os.MkdirAll(tmpDir, 0755); err != nil {
+	// Determine output directory
+	var outputDir string
+	if !model.OutputDir.IsNull() && !model.OutputDir.IsUnknown() {
+		outputDir = model.OutputDir.ValueString()
+	} else {
+		outputDir = filepath.Join(os.TempDir(), "terraform-provider-cloudinit")
+	}
+
+	// Create output directory if it doesn't exist
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to Create Temp Directory",
+			"Failed to Create Output Directory",
 			fmt.Sprintf("Could not create directory for cloud-init ISOs: %s", err),
 		)
 		return
 	}
 
 	// Generate ISO path using checksum for uniqueness
-	isoPath := filepath.Join(tmpDir, fmt.Sprintf("cloudinit-%s.iso", checksum[:16]))
+	isoPath := filepath.Join(outputDir, fmt.Sprintf("cloudinit-%s.iso", checksum[:16]))
 
 	// Check if ISO already exists (for idempotency)
 	if _, err := os.Stat(isoPath); err == nil {
-		if os.IsExist(err) {
-			tflog.Info(ctx, "Cloud-init ISO already exists, reusing", map[string]any{
-				"path": isoPath,
-			})
-		} else {
-			resp.Diagnostics.AddError(
-				"Failed to check if ISO exists",
-				fmt.Sprintf("Could not stat cloud-init ISO: %s", err),
-			)
-			return
-		}
-	} else {
-		// Create new ISO
+		// File exists, reuse it
+		tflog.Info(ctx, "Cloud-init ISO already exists, reusing", map[string]any{
+			"path": isoPath,
+		})
+	} else if os.IsNotExist(err) {
+		// File doesn't exist, create new ISO
 		tflog.Debug(ctx, "Generating cloud-init ISO", map[string]any{
 			"path": isoPath,
 		})
@@ -184,6 +196,13 @@ func (r *CloudInitISOResource) Create(ctx context.Context, req resource.CreateRe
 		tflog.Info(ctx, "Generated cloud-init ISO", map[string]any{
 			"path": isoPath,
 		})
+	} else {
+		// Some other error (permissions, etc.)
+		resp.Diagnostics.AddError(
+			"Failed to Check ISO",
+			fmt.Sprintf("Could not check if cloud-init ISO exists: %s", err),
+		)
+		return
 	}
 
 	// Get file size

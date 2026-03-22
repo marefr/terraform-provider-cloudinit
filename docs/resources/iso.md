@@ -45,6 +45,7 @@ resource "cloudinit_iso" "seed" {
 ### Optional
 
 - `network_config` (String) Cloud-init network configuration (optional, usually YAML).
+- `output_dir` (String) Directory where the ISO file will be created. Defaults to a temporary directory if not specified.
 
 ### Read-Only
 
