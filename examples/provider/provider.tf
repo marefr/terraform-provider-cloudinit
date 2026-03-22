@@ -1,3 +1,7 @@
-provider "scaffolding" {
-  # example configuration here
+terraform {
+  required_providers {
+    cloudinit = {
+      source = "marefr/cloudinit"
+    }
+  }
 }

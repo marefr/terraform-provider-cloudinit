@@ -1,64 +1,51 @@
-# Terraform Provider Scaffolding (Terraform Plugin Framework)
+# Terraform Provider: cloud-init ISO
 
-_This template repository is built on the [Terraform Plugin Framework](https://github.com/hashicorp/terraform-plugin-framework). The template repository built on the [Terraform Plugin SDK](https://github.com/hashicorp/terraform-plugin-sdk) can be found at [terraform-provider-scaffolding](https://github.com/hashicorp/terraform-provider-scaffolding). See [Which SDK Should I Use?](https://developer.hashicorp.com/terraform/plugin/framework-benefits) in the Terraform documentation for additional information._
+[![License](https://img.shields.io/github/license/marefr/terraform-provider-cloudinit)](LICENSE)
+[![Build and Test](https://github.com/marefr/terraform-provider-cloudinit/actions/workflows/test.yml/badge.svg)](https://github.com/marefr/terraform-provider-cloudinit/actions/workflows/test.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/marefr/terraform-provider-cloudinit)](https://goreportcard.com/report/github.com/marefr/terraform-provider-cloudinit)
 
-This repository is a *template* for a [Terraform](https://www.terraform.io) provider. It is intended as a starting point for creating Terraform providers, containing:
+Generate cloud-init ISO images for use with the
+[NoCloud data source](https://docs.cloud-init.io/en/latest/reference/datasources/nocloud.html) and the
+[drive with labeled filesystem](https://docs.cloud-init.io/en/latest/reference/datasources/nocloud.html#source-2-drive-with-labeled-filesystem)
+configuration source.
 
-- A resource and a data source (`internal/provider/`),
-- Examples (`examples/`) and generated documentation (`docs/`),
-- Miscellaneous meta files.
+Use this to provision VMs with tools like libvirt, QEMU, Proxmox, or any hypervisor that supports attaching ISO images.
 
-These files contain boilerplate code that you will need to edit to create your own Terraform provider. Tutorials for creating Terraform providers can be found on the [HashiCorp Developer](https://developer.hashicorp.com/terraform/tutorials/providers-plugin-framework) platform. _Terraform Plugin Framework specific guides are titled accordingly._
+See the [cloud-init documentation](https://cloudinit.readthedocs.io/) for more information.
 
-Please see the [GitHub template repository documentation](https://help.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-from-a-template) for how to create a new repository from this template on GitHub.
+## Usage
 
-Once you've written your provider, you'll want to [publish it on the Terraform Registry](https://developer.hashicorp.com/terraform/registry/providers/publishing) so that others can use it.
+```terraform
+terraform {
+  required_providers {
+    cloudinit = {
+      source = "marefr/cloudinit"
+    }
+  }
+}
 
-## Requirements
-
-- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0
-- [Go](https://golang.org/doc/install) >= 1.24
-
-## Building The Provider
-
-1. Clone the repository
-1. Enter the repository directory
-1. Build the provider using the Go `install` command:
-
-```shell
-go install
+resource "cloudinit_iso" "seed" {
+  name      = "vm-init"
+  user_data = file("user-data.yaml")
+  meta_data = yamlencode({
+    instance-id    = "vm-01"
+    local-hostname = "webserver"
+  })
+}
 ```
 
-## Adding Dependencies
+## Development
 
-This provider uses [Go modules](https://github.com/golang/go/wiki/Modules).
-Please see the Go documentation for the most up to date information about using Go modules.
+### Commands
 
-To add a new dependency `github.com/author/dependency` to your Terraform provider:
+- `make install` - Install the provider
+- `make build` - Build the provider
+- `make test` - Run unit tests
+- `make testacc` - Run acceptance tests
+- `make generate` - Generate documentation
 
-```shell
-go get github.com/author/dependency
-go mod tidy
-```
+## License
 
-Then commit the changes to `go.mod` and `go.sum`.
+Apache 2.0 - See [LICENSE](LICENSE).
 
-## Using the provider
-
-Fill this in for each provider
-
-## Developing the Provider
-
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (see [Requirements](#requirements) above).
-
-To compile the provider, run `go install`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
-
-To generate or update documentation, run `make generate`.
-
-In order to run the full suite of Acceptance tests, run `make testacc`.
-
-*Note:* Acceptance tests create real resources, and often cost money to run.
-
-```shell
-make testacc
-```
+Based on work from [terraform-provider-libvirt](https://github.com/dmacvicar/terraform-provider-libvirt) - see [NOTICE.md](NOTICE.md).
