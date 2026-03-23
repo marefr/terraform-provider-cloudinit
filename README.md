@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/github/license/marefr/terraform-provider-cloudinit)](LICENSE)
 [![GitHub release](https://img.shields.io/github/v/release/marefr/terraform-provider-cloudinit)](https://github.com/marefr/terraform-provider-cloudinit/releases)
-[![Terraform Provider Downloads](https://img.shields.io/terraform/provider/dt/1361211)](https://registry.terraform.io/providers/deevus/truenas/latest)
+[![Terraform Provider Downloads](https://img.shields.io/terraform/provider/dt/1659142)](https://registry.terraform.io/providers/marefr/cloudinit/latest)
 [![CI](https://github.com/marefr/terraform-provider-cloudinit/actions/workflows/test.yml/badge.svg)](https://github.com/marefr/terraform-provider-cloudinit/actions/workflows/test.yml)
 [![Go](https://img.shields.io/github/go-mod/go-version/marefr/terraform-provider-cloudinit)](go.mod)
 [![Go Report Card](https://goreportcard.com/badge/github.com/marefr/terraform-provider-cloudinit)](https://goreportcard.com/report/github.com/marefr/terraform-provider-cloudinit)
